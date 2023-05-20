@@ -6,7 +6,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "LI2DGameMode.generated.h"
 
-UCLASS(minimalapi)
+UCLASS()
 class ALI2DGameMode : public AGameModeBase
 {
 	GENERATED_BODY()

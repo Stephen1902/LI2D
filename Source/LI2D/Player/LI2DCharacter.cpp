@@ -1,12 +1,13 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "LI2DCharacter.h"
-#include "LI2DProjectile.h"
+#include "../LI2DProjectile.h"
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "LI2D_PlayerWidget.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -51,6 +52,11 @@ void ALI2DCharacter::BeginPlay()
 		}
 	}
 
+	if (PlayerWidgetRef)
+	{
+		OnScreenWidget = CreateWidget(GetWorld(), PlayerWidgetRef);
+		OnScreenWidget->AddToViewport();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////// Input

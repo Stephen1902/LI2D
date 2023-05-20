@@ -39,12 +39,15 @@ class ALI2DCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	class UInputAction* MoveAction;
 
-	
+	/** Player widget to display on screen */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	TSubclassOf<class ULI2D_PlayerWidget> PlayerWidgetRef;
+	TObjectPtr<UUserWidget> OnScreenWidget;
 public:
 	ALI2DCharacter();
 
 protected:
-	virtual void BeginPlay();
+	virtual void BeginPlay() override;
 
 public:
 		

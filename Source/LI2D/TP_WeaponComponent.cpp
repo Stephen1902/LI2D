@@ -2,7 +2,7 @@
 
 
 #include "TP_WeaponComponent.h"
-#include "LI2DCharacter.h"
+#include "Player/LI2DCharacter.h"
 #include "LI2DProjectile.h"
 #include "GameFramework/PlayerController.h"
 #include "Camera/PlayerCameraManager.h"

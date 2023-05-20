@@ -1,7 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "LI2DGameMode.h"
-#include "LI2DCharacter.h"
+#include "../Player/LI2DCharacter.h"
 #include "UObject/ConstructorHelpers.h"
 
 ALI2DGameMode::ALI2DGameMode()
