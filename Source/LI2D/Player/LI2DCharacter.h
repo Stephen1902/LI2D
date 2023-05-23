@@ -37,18 +37,73 @@ class ALI2DCharacter : public ACharacter
 
 	/** Move Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
-	class UInputAction* MoveAction;
+	UInputAction* MoveAction;
 
-	/** Player widget to display on screen */
+	/** Pause Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
-	TSubclassOf<class ULI2D_PlayerWidget> PlayerWidgetRef;
-	TObjectPtr<UUserWidget> OnScreenWidget;
+	UInputAction* PauseAction;
+	
+	/** Player widget to display on screen */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Widgets, meta=(AllowPrivateAccess = "true"))
+	TSubclassOf<class ULI2D_PlayerWidget> InGameWidgetRef;
+	TObjectPtr<ULI2D_PlayerWidget> InGameWidget;
+
+	/** Main Menu Widget to display on screen */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Widgets, meta=(AllowPrivateAccess = "true"))
+	TSubclassOf<ULI2D_PlayerWidget> MainMenuWidgetRef;
+	TObjectPtr<ULI2D_PlayerWidget> MainMenuWidget;
+
+	/** Pause Widget to display on screen */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Widgets, meta=(AllowPrivateAccess = "true"))
+	TSubclassOf<ULI2D_PlayerWidget> PauseWidgetRef;
+	TObjectPtr<ULI2D_PlayerWidget> PauseWidget;
+
+	/** Time in seconds between each check for an interaction component */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Gameplay, meta=(AllowPrivateAccess = "true"))
+	double TimeBetweenInteractionCheck = 0.1f;
 public:
 	ALI2DCharacter();
 
+	UFUNCTION(BlueprintCallable, Category = "Gameplay")
+	void QuitToMainMenu();
+
+	UFUNCTION(BlueprintCallable, Category = "Gameplay")
+	void StartMainGame();
+
 protected:
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaSeconds) override;
 
+	/** Called for movement input */
+	void Move(const FInputActionValue& Value);
+
+	/** Called for looking input */
+	void Look(const FInputActionValue& Value);
+
+	// APawn interface
+	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
+	// End of APawn interface
+
+private:
+	TObjectPtr<class ALI2D_GameStateBase> GameStateRef;
+	TObjectPtr<class ALI2D_PlayerController> PlayerControllerRef;
+	void GetReferences();
+	void CreateWidgets();
+
+	// Called when the Game State broadcasts that the game is paused
+	UFUNCTION()
+	void GameHasBeenPaused(bool PausedStatusIn);
+
+	// A check so that the main menu opens on game start, not the pause menu
+	bool bGameHasStarted = true;
+
+	// Called when the player presses the pause button
+	void Paused();
+	bool bGameIsPaused = false;
+
+	// Time since the last interaction check took place
+	double TimeSinceLastInteractionCheck = 0.f;
+	void DoInteractionCheck();
 public:
 		
 	/** Look Input Action */
@@ -66,20 +121,7 @@ public:
 	/** Getter for the bool */
 	UFUNCTION(BlueprintCallable, Category = Weapon)
 	bool GetHasRifle();
-
-protected:
-	/** Called for movement input */
-	void Move(const FInputActionValue& Value);
-
-	/** Called for looking input */
-	void Look(const FInputActionValue& Value);
-
-protected:
-	// APawn interface
-	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
-	// End of APawn interface
-
-public:
+	
 	/** Returns Mesh1P subobject **/
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 	/** Returns FirstPersonCameraComponent subobject **/

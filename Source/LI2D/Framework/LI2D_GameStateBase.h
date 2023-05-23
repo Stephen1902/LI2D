@@ -8,6 +8,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDateChanged, FText, NewCurrentDate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTimeChanged, FText, NewCurrentTime);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGamePauseChanged, bool, NewPauseStatus);
 
 /**
  * 
@@ -26,13 +27,13 @@ public:
 
 	// UPROPERTY so they can be set up in blueprint to edit start time / date easily
 	UPROPERTY(EditDefaultsOnly, Category = "SetUp", meta=(ClampMax="59.0"))
-	float Seconds;
+	double Seconds;
 
 	UPROPERTY(EditDefaultsOnly, Category = "SetUp", meta=(ClampMax="59.0"))
-	float Minutes;
+	double Minutes;
 
 	UPROPERTY(EditDefaultsOnly, Category = "SetUp", meta=(ClampMax="23.0"))
-	float Hours;
+	double Hours;
 
 	UPROPERTY(EditDefaultsOnly, Category = "SetUp", meta=(ClampMin="1", ClampMax="31"))
 	int32 Day;
@@ -48,10 +49,10 @@ public:
 
 	float GetTimeUnit() const { return TimeUnit; }
 	float GetTimeMultiplier() const { return TimeUnitMultiplier; }
-	
-	UFUNCTION(BlueprintCallable, Category = "Gameplay")
-	bool GetIsGamePaused() const { return bIsGamePaused; }
 
+	UFUNCTION(BlueprintCallable, Category = "Gameplay")
+	void SetGameIsPaused(bool GamePausedIn);
+	
 	UFUNCTION(BlueprintCallable, Category = "Gameplay")
 	FText AdjustGameSpeed(bool IncreaseGameSpeed);
 
@@ -60,6 +61,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnTimeChanged OnTimeChanged;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnGamePauseChanged OnGamePauseChanged;
 	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -70,7 +74,7 @@ protected:
 
 private:
 	int32 CurrentGameSpeed;
-	float Clockwork;
+	double Clockwork;
 	int32 DayTick;
 	bool bIsGamePaused;
 	float TimeUnitMultiplier;

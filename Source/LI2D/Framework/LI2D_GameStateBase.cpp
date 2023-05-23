@@ -2,7 +2,6 @@
 
 
 #include "LI2D_GameStateBase.h"
-
 #include "Kismet/KismetMathLibrary.h"
 
 ALI2D_GameStateBase::ALI2D_GameStateBase()
@@ -43,12 +42,21 @@ void ALI2D_GameStateBase::BeginPlay()
 	Clockwork = (Seconds / 3600) + (Minutes / 60) + Hours;
 	SetGameTime();
 	CalculateGameDate();
+
+	// Pause the game so that nothing happens until the player comes off the main menu
+	SetGameIsPaused(true);
 }
 
 float ALI2D_GameStateBase::GetTimeAsPercentage()
 {
 	const float ClockworkAsPercentage = 1.f - ((24.f - Clockwork) / 24.f);
 	return ((ClockworkAsPercentage * 360.f) + 90.f); 
+}
+
+void ALI2D_GameStateBase::SetGameIsPaused(bool GamePausedIn)
+{
+	bIsGamePaused = GamePausedIn;
+	OnGamePauseChanged.Broadcast(bIsGamePaused);
 }
 
 FText ALI2D_GameStateBase::AdjustGameSpeed(bool IncreaseGameSpeed)
@@ -70,7 +78,6 @@ FText ALI2D_GameStateBase::AdjustGameSpeed(bool IncreaseGameSpeed)
 		bIsGamePaused = true;
 		TimeUnitMultiplier = 0.f;
 		return FText::FromString("||");
-		break;
 	case 1:
 		TimeUnitMultiplier = 1.5f;
 		break;
@@ -105,7 +112,7 @@ void ALI2D_GameStateBase::SetClockworkAndDayTick(float DeltaTime)
 void ALI2D_GameStateBase::SetGameTime()
 {
 	// 3600 seconds in one hour
-	const float ClockworkInSeconds = Clockwork * 3600.f;
+	const double ClockworkInSeconds = Clockwork * 3600.f;
 
 	const int32 SecondsRemainder = UKismetMathLibrary::FMod(ClockworkInSeconds, 60.f, Seconds);
 	const int32 MinutesRemainder = UKismetMathLibrary::FMod(SecondsRemainder, 60.f, Minutes);
