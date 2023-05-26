@@ -8,8 +8,9 @@
 #include "EnhancedInputSubsystems.h"
 #include "LI2D_PlayerController.h"
 #include "LI2D_PlayerWidget.h"
+#include "Components/PostProcessComponent.h"
+#include "LI2D/LI2D_InteractionComp.h"
 #include "LI2D/Framework/LI2D_GameStateBase.h"
-
 
 //////////////////////////////////////////////////////////////////////////
 // ALI2DCharacter
@@ -27,6 +28,9 @@ ALI2DCharacter::ALI2DCharacter()
 	FirstPersonCameraComponent->SetupAttachment(GetCapsuleComponent());
 	FirstPersonCameraComponent->SetRelativeLocation(FVector(-10.f, 0.f, 60.f)); // Position the camera
 	FirstPersonCameraComponent->bUsePawnControlRotation = true;
+
+	PostProcessComponent = CreateDefaultSubobject<UPostProcessComponent>(TEXT("Post Process"));
+	PostProcessComponent->SetupAttachment(GetCapsuleComponent());
 
 	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
 	Mesh1P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh1P"));
@@ -85,6 +89,11 @@ void ALI2DCharacter::BeginPlay()
 
 	GetReferences();
 
+	if (GameStateRef)
+	{
+		GameStateRef->OnDimensionChanged.AddDynamic(this, &ALI2DCharacter::DimensionHasChanged);
+	}
+
 	// Create all of the widgets used in game
 	CreateWidgets();
 	
@@ -127,6 +136,12 @@ void ALI2DCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 
 		// Pausing
 		EnhancedInputComponent->BindAction(PauseAction, ETriggerEvent::Started, this, &ALI2DCharacter::Paused);
+
+		// Interaction
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ALI2DCharacter::TryInteract);
+
+		// Dimension Change
+		EnhancedInputComponent->BindAction(DimensionControlAction, ETriggerEvent::Started, this, &ALI2DCharacter::TryDimensionChange);
 	}
 }
 
@@ -162,6 +177,8 @@ void ALI2DCharacter::CreateWidgets()
 	{
 		MainMenuWidget = CreateWidget<ULI2D_PlayerWidget>(GetWorld(), MainMenuWidgetRef);
 		MainMenuWidget->SetPlayerRef(this);
+
+
 	}
 }
 
@@ -191,6 +208,19 @@ void ALI2DCharacter::GameHasBeenPaused(bool PausedStatusIn)
 	}
 }
 
+void ALI2DCharacter::DimensionHasChanged(bool DimensionIsOne)
+{
+	// Check which setting has been given update post process volume accordingly
+	if (DimensionIsOne)
+	{
+		PostProcessComponent->Settings = PostProcessDimensionOne;
+	}
+	else
+	{
+		PostProcessComponent->Settings = PostProcessDimensionTwo;
+	}
+}
+
 void ALI2DCharacter::Paused()
 {
 	if (GameStateRef)
@@ -209,6 +239,65 @@ void ALI2DCharacter::Paused()
 
 void ALI2DCharacter::DoInteractionCheck()
 {
+	// Reset the interaction check time
+	TimeSinceLastInteractionCheck = TimeBetweenInteractionCheck;
+
+	// Get the location and rotation of where the player is looking
+	const FVector TraceStart = GetFirstPersonCameraComponent()->GetComponentLocation();
+	const FVector TraceEnd = (GetFirstPersonCameraComponent()->GetForwardVector() * LineTraceDistance) + TraceStart;
+	FHitResult HitResult;
+
+	FCollisionQueryParams QueryParams;
+	// Make sure we don't check for ourselves
+	QueryParams.AddIgnoredActor(this);
+
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_Visibility, QueryParams))
+	{
+		//Check if we hit an InteractionComp object
+		if (HitResult.GetActor())
+		{
+			if (ULI2D_InteractionComp* InteractionComponent = Cast<ULI2D_InteractionComp>(HitResult.GetActor()->GetComponentByClass(ULI2D_InteractionComp::StaticClass())))
+			{
+				float Distance = (TraceStart - HitResult.ImpactPoint).Size();
+				// Check to make sure that the distance the player is away from the interaction component is within where the IC can be interacted with
+				if (InteractionComponent != GetViewedInteractionComp() && Distance <= InteractionComponent->GetInteractionDistance())
+				{
+					FoundNewInteractionComp(InteractionComponent);
+				}
+				else if (Distance > InteractionComponent->GetInteractionDistance() && GetViewedInteractionComp())
+				{
+					CouldntFindInteractionComp();
+				}
+				return;
+			}
+		}
+	}
+	// If not interaction component is found, clear the old one out
+	CouldntFindInteractionComp();
+}
+
+void ALI2DCharacter::FoundNewInteractionComp(TObjectPtr<ULI2D_InteractionComp> InteractionCompIn)
+{
+	// Check if there was an interaction component already found and clear it
+	if (ULI2D_InteractionComp* OldInteractionComp = GetViewedInteractionComp())
+	{
+		OldInteractionComp->EndFocus(this);
+	}
+
+	// Add the new interaction component we found
+	ViewedInteractionComponent = InteractionCompIn;
+	InteractionCompIn->BeginFocus(this);
+}
+
+void ALI2DCharacter::CouldntFindInteractionComp()
+{
+	//Tell the interaction component we've stopped focusing on it, and clear it.
+	if (ULI2D_InteractionComp* InteractionComp = GetViewedInteractionComp())
+	{
+		InteractionComp->EndFocus(this);
+		ViewedInteractionComponent = nullptr;
+	}
+	
 }
 
 void ALI2DCharacter::Move(const FInputActionValue& Value)
@@ -245,4 +334,20 @@ void ALI2DCharacter::SetHasRifle(bool bNewHasRifle)
 bool ALI2DCharacter::GetHasRifle()
 {
 	return bHasRifle;
+}
+
+void ALI2DCharacter::TryInteract()
+{
+	if (GetViewedInteractionComp())
+	{
+		GetViewedInteractionComp()->Interact(this);
+	}
+}
+
+void ALI2DCharacter::TryDimensionChange()
+{
+	//if (bHasDimensionControl && GameStateRef)
+	{
+		GameStateRef->ChangeDimension();	
+	}
 }

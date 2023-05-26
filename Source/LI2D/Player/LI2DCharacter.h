@@ -27,6 +27,16 @@ class ALI2DCharacter : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FirstPersonCameraComponent;
 
+	/** Post-Process control */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Post Process", meta = (AllowPrivateAccess = "true"))
+	class UPostProcessComponent* PostProcessComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Post Process", meta = (AllowPrivateAccess = "true"))
+	FPostProcessSettings PostProcessDimensionOne;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Post Process", meta = (AllowPrivateAccess = "true"))
+	FPostProcessSettings PostProcessDimensionTwo;
+	
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	class UInputMappingContext* DefaultMappingContext;
@@ -42,6 +52,14 @@ class ALI2DCharacter : public ACharacter
 	/** Pause Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	UInputAction* PauseAction;
+
+	/** Interact Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	UInputAction* InteractAction;
+
+	/** Dimension Control Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	UInputAction* DimensionControlAction;
 	
 	/** Player widget to display on screen */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Widgets, meta=(AllowPrivateAccess = "true"))
@@ -83,7 +101,7 @@ protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 	// End of APawn interface
-
+	
 private:
 	TObjectPtr<class ALI2D_GameStateBase> GameStateRef;
 	TObjectPtr<class ALI2D_PlayerController> PlayerControllerRef;
@@ -94,6 +112,10 @@ private:
 	UFUNCTION()
 	void GameHasBeenPaused(bool PausedStatusIn);
 
+	// Called when the game state broadcasts it has changed the dimension
+	UFUNCTION()
+	void DimensionHasChanged(bool DimensionIsOne);
+
 	// A check so that the main menu opens on game start, not the pause menu
 	bool bGameHasStarted = true;
 
@@ -103,7 +125,14 @@ private:
 
 	// Time since the last interaction check took place
 	double TimeSinceLastInteractionCheck = 0.f;
+	double LineTraceDistance = 500.f;
 	void DoInteractionCheck();
+	// The currently viewed component
+	UPROPERTY()
+	TObjectPtr<class ULI2D_InteractionComp> ViewedInteractionComponent;
+	void FoundNewInteractionComp(TObjectPtr<ULI2D_InteractionComp> InteractionCompIn);
+	void CouldntFindInteractionComp();
+	TObjectPtr<ULI2D_InteractionComp> GetViewedInteractionComp() const { return ViewedInteractionComponent; } 
 public:
 		
 	/** Look Input Action */
@@ -127,6 +156,9 @@ public:
 	/** Returns FirstPersonCameraComponent subobject **/
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
-
+	void TryInteract();
+	
+	bool bHasDimensionControl;
+	void TryDimensionChange();
 };
 

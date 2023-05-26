@@ -7,15 +7,6 @@
 bool ULI2D_PlayerWidget::Initialize()
 {
 	GameStateRef = Cast<ALI2D_GameStateBase>(UUserWidget::GetWorld()->GetGameState());
-
-	if (GameStateRef)
-	{
-		GameStateRef->OnTimeChanged.AddDynamic(this, &ULI2D_PlayerWidget::UpdateInGameTimeText);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("%s failed to get a GameStateRef"), *GetName());
-	}
 	
 	return Super::Initialize();
 }

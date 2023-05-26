@@ -1,8 +1,8 @@
 // Copyright 2023 DME Games
 
-
 #include "LI2D_InteractionComp.h"
 #include "InteractionWidget.h"
+#include "LI2D_TriggerBase.h"
 #include "Player/LI2DCharacter.h"
 
 ULI2D_InteractionComp::ULI2D_InteractionComp()
@@ -82,5 +82,10 @@ void ULI2D_InteractionComp::EndFocus(const TObjectPtr<ALI2DCharacter> Character)
 
 void ULI2D_InteractionComp::Interact(const TObjectPtr<ALI2DCharacter> Character)
 {
+	// Check if the item is one from the custom base class, called the interacted function
+	if (ALI2D_TriggerBase* OwningActor = Cast<ALI2D_TriggerBase>(GetOwner()))
+	{
+		OwningActor->ItemInteractedWith();
+	}
 	OnInteract.Broadcast(Character);
 }

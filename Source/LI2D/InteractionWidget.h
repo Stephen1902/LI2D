@@ -22,5 +22,5 @@ public:
 	void OnUpdateInteractionWidget();
 
 	UPROPERTY(BlueprintReadOnly, Category = "Interaction", meta = (ExposeOnSpawn))
-	class ULI2D_InteractionComp* OwningInteractionComponent;
+	ULI2D_InteractionComp* OwningInteractionComponent;
 };
