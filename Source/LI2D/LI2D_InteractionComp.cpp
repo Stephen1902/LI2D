@@ -45,6 +45,12 @@ void ULI2D_InteractionComp::BeginFocus(const TObjectPtr<ALI2DCharacter> Characte
 		return;
 	}
 
+	// Check that the trigger this item is attached to hasn't already been activated, don't display if it hasn't
+	if (const ALI2D_TriggerBase* CompOwner = Cast<ALI2D_TriggerBase>(GetOwner()))
+	{
+		if (CompOwner->GetShowInteractionComp()) { return; }
+	}
+	
 	OnBeginFocus.Broadcast(Character);
 
 	SetHiddenInGame(false);

@@ -8,6 +8,8 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDimensionChanged, bool, DimensionIsOne);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGamePauseChanged, bool, NewPauseStatus);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnButtonSequenceSucceeded);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnButtonSequenceFailed);
 
 /**
  * 
@@ -34,12 +36,21 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Gameplay")
 	void ChangeDimension();
+
+	UFUNCTION(BlueprintCallable, Category = "Gameplay")
+	void CheckButtonSequence(class ALI2D_TriggerBase* ButtonReferenceIn);
 	
 	UPROPERTY(BlueprintAssignable)
 	FOnDimensionChanged OnDimensionChanged;
 
 	UPROPERTY(BlueprintAssignable)
 	FOnGamePauseChanged OnGamePauseChanged;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnButtonSequenceSucceeded OnButtonSequenceSucceeded;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnButtonSequenceFailed OnButtonSequenceFailed;
 	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -52,4 +63,7 @@ private:
 	double Clockwork;
 	int32 DayTick;
 	bool bIsGamePaused;
+
+	TArray<int32> ButtonOrderSequence = {3, 1, 6, 4, 2, 5};
+	int32 ArrayRowToCheck = 0;
 };

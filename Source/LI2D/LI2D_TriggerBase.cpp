@@ -30,6 +30,7 @@ void ALI2D_TriggerBase::ItemInteractedWith()
 		if (!bItemIsTriggered)
 		{
 			bItemIsTriggered = true;
+			InteractionComp->EndFocus(nullptr);
 			if (ItemToTrigger)
 			{
 				ItemToTrigger->AddActiveTrigger();

@@ -6,6 +6,14 @@
 #include "GameFramework/Actor.h"
 #include "LI2D_WorldItemBase.generated.h"
 
+UENUM(BlueprintType)
+enum class EDimensionType : uint8
+{
+	DimOneOnly  UMETA(DisplayName="Dimension One Only"),
+	DimTwoOnly  UMETA(DisplayName="Dimension Two Only"),
+	DimBoth     UMETA(DisplayName="Both Dimensions")
+};
+
 UCLASS()
 class LI2D_API ALI2D_WorldItemBase : public AActor
 {
@@ -21,11 +29,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Set Up", meta=(AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> MeshComp;
 	
-	// if true, is only visible when the game is set to dimension one, otherwise dimension two
+	// Which dimension this item is designed to be shown in in the world
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Set Up", meta=(AllowPrivateAccess = "true"))
-	bool VisibleDimensionOne = true;
+	EDimensionType DimensionType;
 
-
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="References", meta=(AllowPrivateAccess="true"))
+	TObjectPtr<class ALI2D_GameStateBase> GameStateRef;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -35,8 +44,6 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 private:
-	TObjectPtr<class ALI2D_GameStateBase> GameStateRef;
-
 	UFUNCTION()
 	void DimensionHasChanged(bool DimensionIsOneIn);
 

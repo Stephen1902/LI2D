@@ -30,9 +30,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Gameplay")
 	void ItemInteractedWith();
 
+	UFUNCTION(BlueprintCallable, Category = "Gameplay")
+	void ResetThisItem() {bItemIsTriggered = false;}
+
 	// When an item has been interacted with, for BP
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnItemHasBeenInteractedWith();
+
+	bool GetShowInteractionComp() const { return bItemIsTriggered; }
+	
 
 protected:
 	// Called when the game starts or when spawned

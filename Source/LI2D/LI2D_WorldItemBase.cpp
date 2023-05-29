@@ -16,20 +16,24 @@ ALI2D_WorldItemBase::ALI2D_WorldItemBase()
 
 	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh Comp"));
 	MeshComp->SetupAttachment(RootComp);
+
+	DimensionType = EDimensionType::DimBoth;
 	
 }
 
 // Called when the game starts or when spawned
 void ALI2D_WorldItemBase::BeginPlay()
 {
-	Super::BeginPlay();
-
 	GameStateRef = Cast<ALI2D_GameStateBase>(GetWorld()->GetGameState());
 
 	if (GameStateRef)
 	{
 		GameStateRef->OnDimensionChanged.AddDynamic(this, &ALI2D_WorldItemBase::DimensionHasChanged);
 	}
+	
+	Super::BeginPlay();
+
+
 }
 
 // Called every frame
@@ -41,13 +45,15 @@ void ALI2D_WorldItemBase::Tick(float DeltaTime)
 
 void ALI2D_WorldItemBase::DimensionHasChanged(bool DimensionIsOneIn)
 {
-	if (DimensionIsOneIn == VisibleDimensionOne)
+	if (DimensionIsOneIn && DimensionType == EDimensionType::DimOneOnly || !DimensionIsOneIn && DimensionType == EDimensionType::DimTwoOnly)
 	{
-		MeshComp->SetVisibility(true);
+		MeshComp->SetVisibility(true, true);
+		MeshComp->SetCollisionResponseToChannels(ECollisionResponse::ECR_Block);
 	}
-	else
+	else if (DimensionType != EDimensionType::DimBoth)
 	{
-		MeshComp->SetVisibility(false);
+		MeshComp->SetVisibility(false, true);
+		MeshComp->SetCollisionResponseToChannels(ECollisionResponse::ECR_Ignore);
 	}
 }
 

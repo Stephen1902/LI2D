@@ -3,6 +3,9 @@
 
 #include "LI2D_GameStateBase.h"
 
+#include "Kismet/KismetStringLibrary.h"
+#include "LI2D/LI2D_TriggerBase.h"
+
 ALI2D_GameStateBase::ALI2D_GameStateBase()
 {
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -59,4 +62,32 @@ void ALI2D_GameStateBase::ChangeDimension()
 	}
 
 	
+}
+
+void ALI2D_GameStateBase::CheckButtonSequence(ALI2D_TriggerBase* ButtonReferenceIn)
+{
+	if (ButtonReferenceIn)
+	{
+		const FString ButtonPressed = ButtonReferenceIn->GetName().Right(1);
+
+		const FString StringToDisplay = FString::FromInt(ButtonOrderSequence[ArrayRowToCheck]) + " " + *ButtonPressed;
+		GEngine->AddOnScreenDebugMessage(0, 2.f, FColor::Green, *StringToDisplay);
+
+		if (ButtonOrderSequence[ArrayRowToCheck] == UKismetStringLibrary::Conv_StringToInt(ButtonPressed))
+		{
+			ArrayRowToCheck += 1;
+			// If the number of matches if the same length as the array, sequence is complete
+			if (ArrayRowToCheck == ButtonOrderSequence.Num())
+			{
+				OnButtonSequenceSucceeded.Broadcast();
+			}
+		}
+		else
+		{
+			// Reset the array check
+			ArrayRowToCheck = 0;
+			// Tell anything listening that it needs to reset
+			OnButtonSequenceFailed.Broadcast();
+		}
+	}
 }
